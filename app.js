@@ -1,13 +1,8 @@
-const PUBLISHED_LINK = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQrBwCIn3nyOCbNkYgGjnWOiHI6utpiQk9NDRX9gySo-JXqim5a5T0Nr5sdA_Ool3d0tII7Q8FnoNhZ/pubhtml";
-
-function getPubId(url){
-  const m = url.match(/\/d\/e\/([^/]+)\/pubhtml/);
-  return m ? m[1] : null;
-}
-const PUB_ID = getPubId(PUBLISHED_LINK);
+// ✅ Put your REAL sheet ID here (the /d/<ID>/edit one)
+const SHEET_ID = "PASTE_REAL_SHEET_ID_HERE";
 
 function gviz(sheet){
-  return `https://docs.google.com/spreadsheets/d/e/${PUB_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheet)}`;
+  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheet)}`;
 }
 
 async function fetchSheet(sheet){
@@ -38,27 +33,27 @@ async function load(){
     fetchSheet("Scores")
   ]);
 
-  const me = students.find(s=>s.StudentID==auth.id && s.Token==auth.token);
+  const me = students.find(s=>String(s.StudentID).trim()==auth.id && String(s.Token).trim()==auth.token);
   if(!me){ alert("Access denied"); return; }
 
-  document.getElementById("name").textContent = me.Name;
+  document.getElementById("name").textContent = me.Name || "(No name)";
   document.getElementById("sid").textContent = me.StudentID;
   document.getElementById("sync").textContent = "Last synced: " + new Date().toLocaleString();
 
   document.getElementById("qr").innerHTML="";
   new QRCode(document.getElementById("qr"), { text: me.StudentID, width: 220, height: 220 });
 
-  const myTeams = members.filter(m=>m.StudentID==me.StudentID).map(m=>m.TeamID);
+  const myTeams = members.filter(m=>String(m.StudentID).trim()==me.StudentID).map(m=>String(m.TeamID).trim());
 
   document.getElementById("schedule").innerHTML="";
-  schedule.filter(s=>myTeams.includes(s.TeamID))
+  schedule.filter(s=>myTeams.includes(String(s.TeamID).trim()))
     .forEach(s=>{
       document.getElementById("schedule").innerHTML +=
         `<li>${s.Date} ${s.Time} – ${s.Activity} @ ${s.Location}</li>`;
     });
 
   document.getElementById("scores").innerHTML="";
-  scores.filter(s=>myTeams.includes(s.TeamID))
+  scores.filter(s=>myTeams.includes(String(s.TeamID).trim()))
     .forEach(s=>{
       document.getElementById("scores").innerHTML +=
         `<li>${s.TeamID} ${s.Item}: ${s.Score}</li>`;
@@ -67,4 +62,3 @@ async function load(){
 
 document.getElementById("refresh").onclick = load;
 load();
-
